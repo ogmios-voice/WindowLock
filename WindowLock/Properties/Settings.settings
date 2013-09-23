@@ -1,0 +1,43 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="WindowLock.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AutoFix" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Windows Hook</Value>
+    </Setting>
+    <Setting Name="RefreshMillis" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="PosDX" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">200</Value>
+    </Setting>
+    <Setting Name="PosDY" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">200</Value>
+    </Setting>
+    <Setting Name="SizeDX" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="SizeDY" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="Filters" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;#.* #all processes&lt;/string&gt;
+  &lt;string&gt;explorer&lt;/string&gt;
+  &lt;string&gt;iexplore&lt;/string&gt;
+  &lt;string&gt;chrome&lt;/string&gt;
+  &lt;string&gt;opera&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="IsShowSingle" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="IsMinSysTray" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="SysTrayIcon" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">WindowLock.Resources.icons.move_lock-r16.ico</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

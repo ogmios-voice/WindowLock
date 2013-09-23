@@ -1,0 +1,10 @@
+/Debug
+/deploy
+/ipch
+/Release
+/_Git Bash.lnk
+*.csproj.user
+*.lnk
+*.opensdf
+*.sdf
+*.suo

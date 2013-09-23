@@ -1,0 +1,200 @@
+﻿<Window x:Class="WindowLock.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:hPres="clr-namespace:HelperLib.Presentation;assembly=HelperLib"
+        xmlns:model="clr-namespace:WindowLock.Model"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="WindowLock" Width="1000" Height="600">
+    <Window.Resources>
+        <!-- using MarkupExtension instead -->
+        <!--<ObjectDataProvider x:Key="AutoFixValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="model:AutoFixType" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>-->
+        <CollectionViewSource x:Key="appInfoDataView" Source="{Binding Source={x:Static Application.Current}, Path=AppInfos}">
+            <CollectionViewSource.SortDescriptions>
+                <!-- Requires 'xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"' declaration. -->
+                <scm:SortDescription PropertyName="ProcName"/>
+                <scm:SortDescription PropertyName="PID"/>
+                <scm:SortDescription PropertyName="Location.X"/>
+                <scm:SortDescription PropertyName="Location.Y"/>
+                <scm:SortDescription PropertyName="Size.Width"/>
+                <scm:SortDescription PropertyName="Size.Height"/>
+                <scm:SortDescription PropertyName="IsMain" Direction="Descending"/>
+                <!--<scm:SortDescription PropertyName="WinTitle"/>-->
+            </CollectionViewSource.SortDescriptions>
+            <CollectionViewSource.GroupDescriptions>
+                <!--<PropertyGroupDescription PropertyName="ProcName"/>-->
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+        <CollectionViewSource x:Key="filtersDataView" Source="{Binding Source={x:Static Application.Current}, Path=Settings.FilterList}"/>
+        <ContextMenu x:Key="sysTrayPopup">
+            <MenuItem Header="_Restore" Click="SysTrayRestoreClick"/>
+            <MenuItem Header="_Fix Windows" Click="MoveClick"/>
+            <Separator/>
+            <MenuItem Header="E_xit" Click="SysTrayExitClick"/>
+        </ContextMenu>
+    </Window.Resources>
+    <Grid>
+        <DockPanel LastChildFill="True">
+            <ToolBarTray IsLocked="True" DockPanel.Dock="Top">
+                <ToolBar>
+                    <Button BorderBrush="Black" Margin="1,0,0,0" Content="Refresh"     Click="RefreshClick"/>
+                    <Button BorderBrush="Black" Margin="1,0,0,0" Content="Fix Windows" Click="MoveClick" ToolTip="Fix the position of windows" Background="LightGreen"/>
+                    <Separator/>
+                    <Label Content="AutoFix method:"/>
+                    <!--ItemsSource="{Binding Source={StaticResource AutoFixValues}}"-->
+                    <ComboBox x:Name="cbAutoFix" Margin="1,0,0,0" Width="100" ToolTip="Automatically fix the position of newly opened windows using..."
+                            ItemsSource="{Binding Source={hPres:EnumList {x:Type model:AutoFixType}, AsString=True}}"
+                            SelectedItem="{Binding Source={StaticResource Settings}, Path=Default.AutoFix, Mode=TwoWay}"
+                            SelectionChanged="AutoFix_SelectionChanged"/>
+                    <Separator/>
+                    <CheckBox x:Name="cbShowSingle" Margin="1,0,0,0" Content="Single Windows" ToolTip="Show applications with only one window"
+                            IsChecked="{Binding Source={StaticResource Settings}, Path=Default.IsShowSingle, Mode=TwoWay}" Checked="ShowSingle_Check" Unchecked="ShowSingle_Uncheck"/>
+                    <CheckBox x:Name="cbMinSysTray" Margin="1,0,0,0" Content="SysTray" ToolTip="Minimize to System Tray"
+                            IsChecked="{Binding Source={StaticResource Settings}, Path=Default.IsMinSysTray, Mode=TwoWay}"/>
+                </ToolBar>
+            </ToolBarTray>
+            <Border Background="White" BorderBrush="Black" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+                    <GridSplitter Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="DarkGray" ShowsPreview="True" Width="3"/>
+                    <DataGrid Name="Apps" Grid.Column="0" ItemsSource="{Binding Source={StaticResource appInfoDataView}}" AutoGenerateColumns="False" IsReadOnly="True"
+                              AlternationCount="2" AlternatingRowBackground="AntiqueWhite">
+                        <DataGrid.GroupStyle>
+                            <!-- Style for groups at top level. -->
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Margin" Value="0,0,0,2"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}">
+                                                    <Expander IsExpanded="True" Background="#FF112255" BorderBrush="#FF002255" Foreground="#FFEEEEEE" BorderThickness="0,0,0,0">
+                                                        <Expander.Header>
+                                                            <DockPanel>
+                                                                <TextBlock FontWeight="Bold" Text="{Binding Path=Name}"      Margin="5,0,0,0"/>
+                                                                <TextBlock FontWeight="Bold" Text="{Binding Path=ItemCount}" Margin="5,0,0,0"/>
+                                                                <TextBlock                   Text="windows"                  Margin="5,0,0,0"/>
+                                                            </DockPanel>
+                                                        </Expander.Header>
+                                                        <Expander.Content>
+                                                            <ItemsPresenter />
+                                                        </Expander.Content>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                            <!-- Style for groups under the top level. -->
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Background="LightBlue">
+                                            <TextBlock Text="{Binding Path=Name}"      Foreground="Blue" Margin="30,0,0,0" Width="100"/>
+                                            <TextBlock Text="{Binding Path=ItemCount}" Foreground="Blue"/>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Foreground" Value="Black" />
+                                <Setter Property="FontSize" Value="11" />
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Process"       Width="90"  SortDirection="Ascending"  Binding="{Binding ProcName,  Mode=OneWay}"/>
+                            <DataGridTextColumn Header="PID"           Width="30"  SortDirection="Ascending"  Binding="{Binding PID,       Mode=OneWay}"/>
+                            <DataGridTextColumn Header="Process Title" Width="200"                            Binding="{Binding ProcTitle, Mode=OneWay}"/>
+                            <DataGridTextColumn Header="Window Title"  Width="300"                            Binding="{Binding WinTitle,  Mode=OneWay}"/>
+                            <DataGridTextColumn Header="X"                         SortDirection="Ascending"  Binding="{Binding Location.X}"/>
+                            <DataGridTextColumn Header="Y"                         SortDirection="Ascending"  Binding="{Binding Location.Y}"/>
+                            <DataGridTextColumn Header="W"                         SortDirection="Ascending"  Binding="{Binding Size.Width}"/>
+                            <DataGridTextColumn Header="H"                         SortDirection="Ascending"  Binding="{Binding Size.Height}"/>
+                            <DataGridCheckBoxColumn Header="Main"                  SortDirection="Descending" Binding="{Binding IsMain,    Mode=OneWay}"/>
+                            <!--The Email property contains a URI.  For example "mailto:lucy0@adventure-works.com"-->
+                            <!--<DataGridHyperlinkColumn Header="Email" Binding="{Binding Email}"  ContentBinding="{Binding Email, Converter={StaticResource EmailConverter}}" />-->
+                            <!--<DataGridComboBoxColumn Header="Order Status"  SelectedItemBinding="{Binding Status}" ItemsSource="{Binding Source={StaticResource myEnum}}" />-->
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DockPanel Grid.Column="2" LastChildFill="True">
+                        <GroupBox Height="Auto" DockPanel.Dock="Top">
+                            <GroupBox.Header>
+                                <Label Content="Position range (Width x Height)" ToolTip="Reposition windows within the given range only (from the main window)"/>
+                            </GroupBox.Header>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Grid.Column="0" Width="51" Value="{Binding Source={StaticResource Settings}, Path=Default.PosDX, Mode=TwoWay}" Minimum="100" Maximum="900"
+                                    Orientation="Horizontal" SmallChange="20" LargeChange="100" TickPlacement="BottomRight" TickFrequency="100"/>
+                                <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="1,0,3,0">
+                                    <TextBox Width="37" MaxLength="4" TextAlignment="Right" Text="{Binding Source={StaticResource Settings}, Path=Default.PosDX, Mode=TwoWay}" IsReadOnly="True" />
+                                </Border>
+                                <Slider Grid.Column="2" Width="51" Value="{Binding Source={StaticResource Settings}, Path=Default.PosDY, Mode=TwoWay}" Minimum="100" Maximum="900"
+                                    Orientation="Horizontal" SmallChange="20" LargeChange="100" TickPlacement="BottomRight" TickFrequency="100"/>
+                                <Border Grid.Column="3" BorderBrush="Black" BorderThickness="1" Margin="1,0,0,0">
+                                    <TextBox Width="37" MaxLength="4" TextAlignment="Right" Text="{Binding Source={StaticResource Settings}, Path=Default.PosDY, Mode=TwoWay}" IsReadOnly="True" />
+                                </Border>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Height="Auto" DockPanel.Dock="Top">
+                            <GroupBox.Header>
+                                <Label Content="Size range (Width x Height)" ToolTip="Reposition windows with size within the given range only (compared to the main window)"/>
+                            </GroupBox.Header>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Grid.Column="0" Width="60" Value="{Binding Source={StaticResource Settings}, Path=Default.SizeDX, Mode=TwoWay}" Minimum="0" Maximum="100"
+                                        Orientation="Horizontal" SmallChange="5" LargeChange="20" TickPlacement="BottomRight" TickFrequency="20"/>
+                                <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1" Margin="1,0,3,0">
+                                    <TextBox Width="28" MaxLength="3" TextAlignment="Right" Text="{Binding Source={StaticResource Settings}, Path=Default.SizeDX, Mode=TwoWay}" IsReadOnly="True" />
+                                </Border>
+                                <Slider Grid.Column="2" Width="60" Value="{Binding Source={StaticResource Settings}, Path=Default.SizeDY, Mode=TwoWay}" Minimum="0" Maximum="100"
+                                        Orientation="Horizontal" SmallChange="5" LargeChange="20" TickPlacement="BottomRight" TickFrequency="20"/>
+                                <Border Grid.Column="3" BorderBrush="Black" BorderThickness="1" Margin="1,0,0,0">
+                                    <TextBox Width="28" MaxLength="3" TextAlignment="Right" Text="{Binding Source={StaticResource Settings}, Path=Default.SizeDY, Mode=TwoWay}" IsReadOnly="True" />
+                                </Border>                                
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Height="Auto" DockPanel.Dock="Top">
+                            <GroupBox.Header>
+                                <Label>Filters (regex)</Label>
+                            </GroupBox.Header>
+                            <DataGrid Name="Filters" Grid.Column="0" ItemsSource="{Binding Source={StaticResource filtersDataView}}" AutoGenerateColumns="False"
+                                    CanUserAddRows="True" CanUserDeleteRows="True" KeyDown="Filters_KeyDown"
+                                    AlternationCount="2" AlternatingRowBackground="AntiqueWhite">
+                                <DataGrid.CellStyle>
+                                    <Style TargetType="{x:Type DataGridCell}">
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="FontSize" Value="11" />
+                                    </Style>
+                                </DataGrid.CellStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Process Name" Width="160" Binding="{Binding Path=Value, Mode=TwoWay}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+                    </DockPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+    </Grid>
+</Window>

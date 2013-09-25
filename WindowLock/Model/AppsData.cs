@@ -26,7 +26,7 @@ namespace WindowLock.Model {
         }
 
         public bool Load(bool force=false) {
-            ResetPresent();
+            ResetPresence();
             bool isChanged = LoadWindows();
             isChanged |= RemoveOld();
             if(force || isChanged) {
@@ -83,7 +83,12 @@ namespace WindowLock.Model {
         }
 
         protected bool IsHwndSelectable(HwndObject hwndObj) {
-            return hwndObj.GetOwner().Hwnd.ToInt32() == 0 && hwndObj.Info.IsVisible();
+            // neither the owner of a window nor the dimension of a 0x0 would change during its lifetime
+            if(hwndObj.GetOwner().Hwnd.ToInt32() != 0 || hwndObj.Rect.Width == 0 || hwndObj.Rect.Height == 0) {
+                return false;
+            }
+            hwndObj.ResetInfo();
+            return hwndObj.Info.IsVisible();
         }
 
         protected bool IsProcSelectable(Process proc) {
@@ -158,9 +163,7 @@ namespace WindowLock.Model {
         #region AppData refresh
         protected delegate void ProcessAppWinData(AppData appData, AppWinData appWinData);
         
-        protected static ProcessAppWinData resetPresent = (appData, appWinData) => {
-            appWinData.IsPresent = false;
-        };
+        protected static ProcessAppWinData resetPresence   = (appData, appWinData) => { appWinData.IsPresent = false; };
 
         protected static ProcessAppWinData resetMainHwnds  = (appData, appWinData) => { appData.ClearMainWindows(); };
         protected static ProcessAppWinData updateMainHwnds = (appData, appWinData) => { appData.UpdateMainWindows(appWinData); };
@@ -174,8 +177,8 @@ namespace WindowLock.Model {
             }
         }
 
-        protected void ResetPresent() {
-            TraverseAppData(resetPresent);
+        protected void ResetPresence() {
+            TraverseAppData(resetPresence);
         }
         protected void ResetMainHwnds() {
             TraverseAppData(resetMainHwnds);

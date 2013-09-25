@@ -67,8 +67,6 @@ and moved windows will be detected
 
 Known issues
 ============
-- Windows with **0x0 dimension** are not filtered out yet
-- **Size range** does not work correctly
 - Windows of applications started as a **different user** are not always detected correctly
 - The **SysTray popup** is hidden only if you click on the icon of the application, or on selecting any of the menu items
 - **Memory consumption** is too high (60-70Mb) compared to my initial expectations (this might as well be a C# / WPF issue)

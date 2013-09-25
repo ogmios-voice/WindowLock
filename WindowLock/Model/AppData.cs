@@ -10,9 +10,9 @@ using WindowScrape.Types;
 
 namespace WindowLock.Model {
     public class AppData {
-        public string     ProcName { get; protected set; }
-        public int        PID { get; protected set; }
-        public string     ProcTitle { get; set; }
+        public string ProcName { get; protected set; }
+        public int    PID { get; protected set; }
+        public string ProcTitle { get; set; }
         public IDictionary<HwndObject, AppWinData> Windows { get; protected set; }
         protected List<HwndObject> MainHwndObjs { get; set; }
 
@@ -53,22 +53,26 @@ namespace WindowLock.Model {
         /// <returns></returns>
         protected int IdxOfMainWindowInRange(HwndObject hwndObj) {
             for(int i=0; i<MainHwndObjs.Count; i++) {
-                if(IsWindowSizeInRange(MainHwndObjs[i], hwndObj) && IsWindowInRange(MainHwndObjs[i], hwndObj)) {
+                if(IsWindowSizeInRange(MainHwndObjs[i], hwndObj) && IsWindowPosInRange(MainHwndObjs[i], hwndObj)) {
                     return i;
                 }
             }
             return -1;
         }
 
+        protected bool IsWindowSizeDiff(HwndObject mainHwndObj, HwndObject hwndObj) {
+            return mainHwndObj.Rect.Width  != hwndObj.Rect.Width
+                || mainHwndObj.Rect.Height != hwndObj.Rect.Height;
+        }
         protected bool IsWindowSizeInRange(HwndObject mainHwndObj, HwndObject hwndObj) {
             return Math.Abs(hwndObj.Rect.Width  - mainHwndObj.Rect.Width)  <= Properties.Settings.Default.SizeDX
                 && Math.Abs(hwndObj.Rect.Height - mainHwndObj.Rect.Height) <= Properties.Settings.Default.SizeDY;
         }
-        protected bool IsWindowMisplaced(HwndObject mainHwndObj, HwndObject hwndObj) {
+        protected bool IsWindowPosDiff(HwndObject mainHwndObj, HwndObject hwndObj) {
             return mainHwndObj.Rect.X != hwndObj.Rect.X
                 || mainHwndObj.Rect.Y != hwndObj.Rect.Y;
         }
-        protected bool IsWindowInRange(HwndObject mainHwndObj, HwndObject hwndObj) {
+        protected bool IsWindowPosInRange(HwndObject mainHwndObj, HwndObject hwndObj) {
             return Math.Abs(hwndObj.Rect.X - mainHwndObj.Rect.X) <= Properties.Settings.Default.PosDX
                 && Math.Abs(hwndObj.Rect.Y - mainHwndObj.Rect.Y) <= Properties.Settings.Default.PosDY;
         }
@@ -83,8 +87,8 @@ namespace WindowLock.Model {
             if(Windows.Count > 1 && !MainHwndObjs.Contains(appWinData.HwndObj)) {
                 int mainHwndIdx = IdxOfMainWindowInRange(appWinData.HwndObj); // index will always be valid
                 HwndObject mainHwndObj = MainHwndObjs[mainHwndIdx];
-                if(IsWindowMisplaced(mainHwndObj, appWinData.HwndObj)) {
-                    appWinData.HwndObj.Location = mainHwndObj.Location;
+                if(IsWindowPosDiff(mainHwndObj, appWinData.HwndObj) || IsWindowSizeDiff(mainHwndObj, appWinData.HwndObj)) {
+                    appWinData.HwndObj.Rect = mainHwndObj.Rect;
                 }
             }
         }

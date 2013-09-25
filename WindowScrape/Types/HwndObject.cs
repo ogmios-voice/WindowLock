@@ -82,7 +82,7 @@ namespace WindowScrape.Types {
                 return rect;
             }
             set {
-                rect = value;
+                rect = new RECT(value);
                 HwndInterface.SetHwndPlacementRect(Hwnd, rect);
             }
         }
@@ -178,6 +178,13 @@ namespace WindowScrape.Types {
             pid = 0;
             info = WINDOWINFO.Empty;
             ResetPosition();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ResetInfo() {
+            info = WINDOWINFO.Empty;
         }
 
         /// <summary>
